@@ -23,7 +23,7 @@ class RH extends Controller
     }
 
     /**
-     * Dashboard RH - Voir toutes les demandes en attente
+     * Dashboard RH - Voir toutes les demandes (tous statuts)
      */
     public function dashboard()
     {
@@ -32,7 +32,7 @@ class RH extends Controller
         }
 
         $data = [
-            'demandes' => $this->congeModel->getPendingDemandesWithDetails(),
+            'demandes' => $this->congeModel->getAllDemandesWithDetails(),
             'departements' => $this->employeeModel->distinct()->select('departement_id')->findAll(),
         ];
 

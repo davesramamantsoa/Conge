@@ -38,7 +38,7 @@
                     <div class="role-pill">
                         <i class="bi bi-person-check"></i>
                         <div>
-                            <div class="role-pill-name">Manager</div>
+                            <div class="role-pill-name">Admin</div>
                             <div class="role-pill-cred">pierre.bernard@example.com · hash_pwd_4</div>
                         </div>
                     </div>

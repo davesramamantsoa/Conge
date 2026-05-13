@@ -68,6 +68,18 @@ class Conge extends Model
     }
 
     /**
+     * Récupérer toutes les demandes (tous statuts) avec infos employé et type de congé
+     */
+    public function getAllDemandesWithDetails()
+    {
+        return $this->select('conges.*, employes.nom, employes.prenom, employes.departement_id, types_conge.libelle as type_conge_libelle')
+                    ->join('employes', 'employes.id = conges.employe_id')
+                    ->join('types_conge', 'types_conge.id = conges.type_conge_id')
+                    ->orderBy('conges.created_at', 'DESC')
+                    ->findAll();
+    }
+
+    /**
      * Approuver une demande
      */
     public function approveDemande($id, $traiteParId)

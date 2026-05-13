@@ -1,36 +1,120 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Admin - TechMada RH</title>
-    <link href="<?= base_url('assets/bootstrap/css/bootstrap.min.css') ?>" rel="stylesheet">
-    <style>
-        body { font-family: 'DM Sans', sans-serif; background: #f8f6f1; padding: 2rem; }
-        .container { max-width: 1200px; background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-        h1 { color: #2d5a3d; margin-bottom: 1rem; }
-        .badge { margin-left: auto; }
-        .logout-btn { float: right; margin-bottom: 1rem; }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <a href="<?= base_url('/logout') ?>" class="btn btn-outline-danger logout-btn">Déconnexion</a>
-        
-        <h1><i class="bi bi-shield-check"></i> Dashboard Admin</h1>
-        <p class="text-muted">Bienvenue <strong><?= session('user_prenom') ?> <?= session('user_nom') ?></strong></p>
-        
-        <div class="alert alert-info">
-            <strong>Rôle :</strong> <?= session('user_role') ?>
-        </div>
+<?php echo view('admin/_header', ['title' => 'Dashboard Admin', 'active' => 'dashboard']); ?>
+<?php
+$userPrenom = (string) ($userPrenom ?? '');
+$userNom = (string) ($userNom ?? '');
+$employeesCount = (int) ($employeesCount ?? 0);
+$departementsCount = (int) ($departementsCount ?? 0);
+$typesCount = (int) ($typesCount ?? 0);
+$pendingCount = (int) ($pendingCount ?? 0);
+$currentMonthCongeCount = (int) ($currentMonthCongeCount ?? 0);
+$currentMonthApprovedCount = (int) ($currentMonthApprovedCount ?? 0);
+$currentMonthApprovedDays = (float) ($currentMonthApprovedDays ?? 0);
+$currentMonthAbsences = $currentMonthAbsences ?? [];
+$recentDemandes = $recentDemandes ?? [];
+?>
 
-        <h2>Fonctionnalités Admin</h2>
-        <ul class="list-group">
-            <li class="list-group-item">Gestion complète des utilisateurs</li>
-            <li class="list-group-item">Configuration du système</li>
-            <li class="list-group-item">Rapports et statistiques</li>
-            <li class="list-group-item">Gestion des droits d'accès</li>
-        </ul>
+<div class="page-head">
+    <div>
+        <h2>Dashboard Admin</h2>
+        <p>Gérez les employés, les référentiels et le suivi des demandes de congé.</p>
     </div>
-</body>
-</html>
+    <div class="text-end">
+        <div class="badge text-bg-light border">Bonjour <?= esc($userPrenom) ?> <?= esc($userNom) ?></div>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-3"><div class="metric"><div class="label">Employés</div><div class="value"><?= $employeesCount ?></div></div></div>
+    <div class="col-md-3"><div class="metric success"><div class="label">Départements</div><div class="value"><?= $departementsCount ?></div></div></div>
+    <div class="col-md-3"><div class="metric dark"><div class="label">Types de congé</div><div class="value"><?= $typesCount ?></div></div></div>
+    <div class="col-md-3"><div class="metric"><div class="label">Demandes en attente</div><div class="value"><?= $pendingCount ?></div></div></div>
+</div>
+
+<div class="row g-4 mb-4">
+    <div class="col-lg-7">
+        <div class="panel h-100">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="mb-0">Fonctionnalités Admin</h5>
+                <span class="badge text-bg-primary">Back-office</span>
+            </div>
+            <div class="list-group">
+                <a href="<?= base_url('/admin/employes') ?>" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">CRUD employés <i class="bi bi-arrow-right"></i></a>
+                <a href="<?= base_url('/admin/departements') ?>" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">CRUD départements <i class="bi bi-arrow-right"></i></a>
+                <a href="<?= base_url('/admin/types-conges') ?>" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">CRUD types de congé <i class="bi bi-arrow-right"></i></a>
+                <a href="<?= base_url('/admin/absences') ?>" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">Absences du mois en cours <i class="bi bi-arrow-right"></i></a>
+                <a href="<?= base_url('/admin/soldes') ?>" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">Initialiser / ajuster le solde annuel <i class="bi bi-arrow-right"></i></a>
+                <a href="<?= base_url('/admin/historique') ?>" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">Historique complet des demandes <i class="bi bi-arrow-right"></i></a>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-5">
+        <div class="panel h-100">
+            <h5 class="mb-3">Mois en cours</h5>
+            <div class="d-flex flex-column gap-3">
+                <div class="d-flex justify-content-between"><span>Absences enregistrées</span><strong><?= $currentMonthCongeCount ?></strong></div>
+                <div class="d-flex justify-content-between"><span>Absences approuvées</span><strong><?= $currentMonthApprovedCount ?></strong></div>
+                <div class="d-flex justify-content-between"><span>Jours approuvés</span><strong><?= $currentMonthApprovedDays ?></strong></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-6">
+        <div class="panel h-100">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="mb-0">Absences du mois</h5>
+                <a class="btn btn-sm btn-outline-primary" href="<?= base_url('/admin/absences') ?>">Voir tout</a>
+            </div>
+            <div class="table-responsive">
+                <table class="table align-middle mb-0">
+                    <thead>
+                    <tr><th>Employé</th><th>Type</th><th>Période</th><th>Statut</th></tr>
+                    </thead>
+                    <tbody>
+                    <?php foreach (array_slice($currentMonthAbsences, 0, 6) as $absence): ?>
+                        <tr>
+                            <td><?= esc((string) ($absence['prenom_employe'] ?? '') . ' ' . (string) ($absence['nom_employe'] ?? '')) ?></td>
+                            <td><?= esc((string) ($absence['type_conge'] ?? '')) ?></td>
+                            <td><?= esc((string) ($absence['date_debut'] ?? '')) ?> - <?= esc((string) ($absence['date_fin'] ?? '')) ?></td>
+                            <td><span class="badge-soft status-<?= esc((string) ($absence['statut'] ?? '')) ?>"><?= esc((string) ($absence['statut'] ?? '')) ?></span></td>
+                        </tr>
+                    <?php endforeach; ?>
+                    <?php if (empty($currentMonthAbsences)): ?>
+                        <tr><td colspan="4" class="text-muted">Aucune absence ce mois-ci.</td></tr>
+                    <?php endif; ?>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="panel h-100">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="mb-0">Historique récent</h5>
+                <a class="btn btn-sm btn-outline-primary" href="<?= base_url('/admin/historique') ?>">Historique complet</a>
+            </div>
+            <div class="table-responsive">
+                <table class="table align-middle mb-0">
+                    <thead>
+                    <tr><th>Employé</th><th>Période</th><th>Statut</th></tr>
+                    </thead>
+                    <tbody>
+                    <?php foreach (array_slice($recentDemandes, 0, 6) as $demande): ?>
+                        <tr>
+                            <td><?= esc((string) ($demande['prenom_employe'] ?? '') . ' ' . (string) ($demande['nom_employe'] ?? '')) ?></td>
+                            <td><?= esc((string) ($demande['date_debut'] ?? '')) ?> - <?= esc((string) ($demande['date_fin'] ?? '')) ?></td>
+                            <td><span class="badge-soft status-<?= esc((string) ($demande['statut'] ?? '')) ?>"><?= esc((string) ($demande['statut'] ?? '')) ?></span></td>
+                        </tr>
+                    <?php endforeach; ?>
+                    <?php if (empty($recentDemandes)): ?>
+                        <tr><td colspan="3" class="text-muted">Aucune demande trouvée.</td></tr>
+                    <?php endif; ?>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<?php echo view('admin/_footer'); ?>
