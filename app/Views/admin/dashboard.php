@@ -19,7 +19,7 @@ $recentDemandes = $recentDemandes ?? [];
         <p>Gérez les employés, les référentiels et le suivi des demandes de congé.</p>
     </div>
     <div class="text-end">
-        <div class="badge text-bg-light border">Bonjour <?= esc($userPrenom) ?> <?= esc($userNom) ?></div>
+        <div class="badge text-bg-success-subtle border border-success-subtle text-success-emphasis">Bonjour <?= esc($userPrenom) ?> <?= esc($userNom) ?></div>
     </div>
 </div>
 
@@ -35,7 +35,7 @@ $recentDemandes = $recentDemandes ?? [];
         <div class="panel h-100">
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <h5 class="mb-0">Fonctionnalités Admin</h5>
-                <span class="badge text-bg-primary">Back-office</span>
+                <span class="badge text-bg-success">Back-office</span>
             </div>
             <div class="list-group">
                 <a href="<?= base_url('/admin/employes') ?>" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">CRUD employés <i class="bi bi-arrow-right"></i></a>

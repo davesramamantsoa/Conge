@@ -12,22 +12,25 @@ $active = $active ?? 'dashboard';
     <link href="<?= base_url('assets/bootstrap/bootstrap-icons/font/bootstrap-icons.css') ?>" rel="stylesheet">
     <style>
         :root {
-            --admin-bg: #eef3f8;
+            --forest: #2d5a3d;
+            --forest-soft: rgba(45, 90, 61, 0.12);
+            --forest-deep: #234731;
+            --admin-bg: #f8f6f1;
             --admin-panel: #ffffff;
-            --admin-sidebar: #122033;
-            --admin-accent: #316bff;
-            --admin-accent-2: #18a36a;
-            --admin-border: #dbe3ee;
-            --admin-text: #1e293b;
-            --admin-muted: #64748b;
+            --admin-sidebar: #2d5a3d;
+            --admin-accent: #2d5a3d;
+            --admin-accent-2: #1e6b3f;
+            --admin-border: #dde8e1;
+            --admin-text: #1f2937;
+            --admin-muted: #6b7280;
         }
 
         * { box-sizing: border-box; }
 
         body {
             margin: 0;
-            font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-            background: linear-gradient(180deg, #f6f8fb 0%, var(--admin-bg) 100%);
+            font-family: 'DM Sans', sans-serif;
+            background: var(--admin-bg);
             color: var(--admin-text);
         }
 
@@ -38,7 +41,7 @@ $active = $active ?? 'dashboard';
         }
 
         .admin-sidebar {
-            background: linear-gradient(180deg, var(--admin-sidebar) 0%, #0d1726 100%);
+            background: linear-gradient(180deg, var(--admin-sidebar) 0%, var(--forest-deep) 100%);
             color: #fff;
             padding: 1.5rem;
             position: sticky;
@@ -82,7 +85,7 @@ $active = $active ?? 'dashboard';
 
         .admin-nav a:hover,
         .admin-nav a.active {
-            background: rgba(255,255,255,.11);
+            background: rgba(255,255,255,.14);
             color: #fff;
         }
 
@@ -91,12 +94,11 @@ $active = $active ?? 'dashboard';
         .admin-main { padding: 1.5rem; }
 
         .page-shell {
-            background: rgba(255,255,255,.72);
-            border: 1px solid rgba(219,227,238,.9);
+            background: #fff;
+            border: 1px solid var(--admin-border);
             box-shadow: 0 20px 45px rgba(15,23,42,.08);
-            border-radius: 28px;
+            border-radius: 12px;
             padding: 1.25rem;
-            backdrop-filter: blur(10px);
         }
 
         .page-head { display: flex; justify-content: space-between; align-items: start; gap: 1rem; margin-bottom: 1.5rem; }
@@ -106,37 +108,37 @@ $active = $active ?? 'dashboard';
         .panel {
             background: var(--admin-panel);
             border: 1px solid var(--admin-border);
-            border-radius: 22px;
+            border-radius: 12px;
             padding: 1.25rem;
             box-shadow: 0 10px 25px rgba(15,23,42,.04);
         }
 
         .metric {
-            border-radius: 22px;
+            border-radius: 12px;
             padding: 1.25rem;
             color: #fff;
             min-height: 132px;
-            background: linear-gradient(135deg, var(--admin-accent) 0%, #5a85ff 100%);
-            box-shadow: 0 16px 30px rgba(49,107,255,.22);
+            background: linear-gradient(135deg, var(--admin-accent) 0%, #4f8a61 100%);
+            box-shadow: 0 12px 24px rgba(45,90,61,.18);
         }
 
         .metric.success {
-            background: linear-gradient(135deg, var(--admin-accent-2) 0%, #32c48c 100%);
-            box-shadow: 0 16px 30px rgba(24,163,106,.2);
+            background: linear-gradient(135deg, var(--admin-accent-2) 0%, #2f8b57 100%);
+            box-shadow: 0 12px 24px rgba(30,107,63,.2);
         }
 
-        .metric.dark { background: linear-gradient(135deg, #334155 0%, #0f172a 100%); }
+        .metric.dark { background: linear-gradient(135deg, #475569 0%, #1f2937 100%); }
         .metric .value { font-size: 2rem; font-weight: 800; line-height: 1; }
         .metric .label { opacity: .9; font-size: .95rem; }
 
         .table thead th {
-            background: #f6f8fb;
+            background: #f4f2ea;
             color: var(--admin-muted);
             border-bottom: 1px solid var(--admin-border);
         }
 
         .badge-soft { border-radius: 999px; padding: .45rem .7rem; }
-        .status-en_attente { background: #fff4d6; color: #9a6700; }
+        .status-en_attente { background: #fef3c7; color: #92400e; }
         .status-approuvee { background: #dcfce7; color: #166534; }
         .status-refusee { background: #fee2e2; color: #991b1b; }
         .status-annulee { background: #e2e8f0; color: #334155; }
