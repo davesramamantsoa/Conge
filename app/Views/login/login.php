@@ -78,13 +78,13 @@
 
                     <div class="f-group">
                         <label class="f-label">Adresse email</label>
-                        <input type="email" class="f-input" name="email" placeholder="exemple@mail.com" value="<?= old('email') ?>" required />
+                        <input type="email" class="f-input" name="email" placeholder="exemple@mail.com" value="sophie.martin@example.com" required />
                     </div>
 
                     <div class="f-group">
                         <label class="f-label">Mot de passe</label>
                         <div class="f-input-wrapper">
-                            <input type="password" class="f-input f-input-pwd" name="password" id="password" placeholder="••••••••" required />
+                            <input type="password" class="f-input f-input-pwd" name="password" id="password" placeholder="••••••••" required value="hash_pwd_1" />
                             <span class="f-eye" onclick="togglePassword()">
                                 <i class="bi bi-eye" id="toggle-icon"></i>
                             </span>
@@ -97,10 +97,6 @@
                         Se connecter <i class="bi bi-arrow-right-short"></i>
                     </button>
                 </form>
-
-                <div class="auth-footer">
-                    Pas encore inscrit ? <a href="<?= base_url('auth/register') ?>">Créer un compte</a>
-                </div>
             </div>
 
         </div>
@@ -120,7 +116,7 @@
         }
     </script>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="<?= base_url('assets/bootstrap/js/bootstrap.bundle.min.js')?>"></script>
 </body>
 
 </html>

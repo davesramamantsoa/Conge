@@ -106,7 +106,7 @@ INSERT INTO employes (nom, prenom, email, password, role, departement_id, date_e
     ('Martin',   'Sophie',  'sophie.martin@example.com',  '$2y$10$CW3m7mvmbHZtdYFt3p48ZOFTOk/54bapSZbsvDbWvOg2UVI6DDBq.', 'rh',      1, '2018-03-15', 1),
     ('Dupont',   'Jean',    'jean.dupont@example.com',    '$2y$10$qIukjylA1oJUk/xWOrM.7uu9pkfH0XkaacGbIQEvc9kFzkftY.kIa', 'employe', 2, '2020-06-01', 1),
     ('Leroy',    'Marie',   'marie.leroy@example.com',    '$2y$10$wb9vb7Sd0kFWO2OpZ7LveubzqehRnnaGtA7H2xZty6U3iV6bJiX.y', 'employe', 2, '2019-09-10', 1),
-    ('Bernard',  'Pierre',  'pierre.bernard@example.com', '$2y$10$LlfE6gc5Vx6/vhwYWugJG.x.1Qb1x1Yn3p9BpYayEr7AobsCwdwLS', 'manager', 3, '2017-01-20', 1),
+    ('Bernard',  'Pierre',  'pierre.bernard@example.com', '$2y$10$LlfE6gc5Vx6/vhwYWugJG.x.1Qb1x1Yn3p9BpYayEr7AobsCwdwLS', 'admin', 3, '2017-01-20', 1),
     ('Moreau',   'Claire',  'claire.moreau@example.com',  '$2y$10$ORteeT/TpOIrrYv.sS6T9efQGSoOf8JOCL//T7o/Oc..MG7HrHQCu', 'employe', 4, '2021-11-05', 1);
 
 -- Soldes (année 2025)

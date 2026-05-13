@@ -75,7 +75,16 @@ class Auth extends Controller
             'departement_id' => $employee['departement_id'],
         ]);
 
-        return redirect()->to('/dashboard')->with('success', 'Bienvenue ' . $employee['prenom'] . '!');
+        // Redirection selon le rôle
+        $role = strtolower($employee['role']);
+        $redirectUrl = match($role) {
+            'admin' => '/admin',
+            'rh' => '/rh',
+            'employe' => '/employe',
+            default => '/dashboard',
+        };
+
+        return redirect()->to($redirectUrl)->with('success', 'Bienvenue ' . $employee['prenom'] . '!');
     }
 
     /**
