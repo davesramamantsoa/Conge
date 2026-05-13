@@ -23,12 +23,13 @@ $routes->get('/admin', function () {
 });
 
 // Routes protégées - Dashboard RH
-$routes->get('/rh', function () {
-    if (!session()->has('user_id') || session('user_role') !== 'rh') {
-        return redirect()->to('/login')->with('error', 'Accès refusé. RH uniquement.');
-    }
-    return view('rh/dashboard');
-});
+$routes->get('/rh', 'RH::dashboard');
+$routes->get('/rh/filter-departement/(:num)', 'RH::filterByDepartement/$1');
+$routes->get('/rh/filter-statut/(:any)', 'RH::filterByStatut/$1');
+$routes->post('/rh/approve/(:num)', 'RH::approveDemande/$1');
+$routes->post('/rh/refuse/(:num)', 'RH::refuseDemande/$1');
+$routes->get('/rh/soldes', 'RH::soldes');
+$routes->get('/rh/employe/(:num)', 'RH::demandesEmploye/$1');
 
 // Routes protégées - Dashboard Employé
 $routes->get('/employe', 'EmployeController::dashboard');
