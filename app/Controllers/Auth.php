@@ -22,11 +22,6 @@ class Auth extends Controller
      */
     public function login()
     {
-        // Si déjà connecté, rediriger
-        if ($this->session->has('user_id')) {
-            return redirect()->to('/dashboard');
-        }
-
         return view('login/login');
     }
 
@@ -81,7 +76,7 @@ class Auth extends Controller
             'admin' => '/admin',
             'rh' => '/rh',
             'employe' => '/employe',
-            default => '/dashboard',
+            default => '/login',
         };
 
         return redirect()->to($redirectUrl)->with('success', 'Bienvenue ' . $employee['prenom'] . '!');
