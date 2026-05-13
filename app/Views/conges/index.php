@@ -5,13 +5,15 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Congés</title>
+    <link href="<?= base_url('assets/bootstrap/css/bootstrap.min.css') ?>" rel="stylesheet">
 </head>
 <body>
-<h1>Liste des congés</h1>
+<div class="container py-4">
+<h1 class="mb-3">Liste des congés</h1>
 
-<p><a href="<?= site_url('conges') ?>">Actualiser</a></p>
+<p><a class="btn btn-secondary btn-sm" href="<?= site_url('conges') ?>">Actualiser</a></p>
 
-<table border="1" cellpadding="6" cellspacing="0">
+<table class="table table-bordered table-striped">
     <tr>
         <th>ID</th>
         <th>Employé</th>
@@ -41,5 +43,6 @@
         </tr>
     <?php endif; ?>
 </table>
+</div>
 </body>
 </html>

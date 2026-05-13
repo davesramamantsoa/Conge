@@ -31,9 +31,11 @@ $routes->get('/rh', function () {
 });
 
 // Routes protégées - Dashboard Employé
-$routes->get('/employe', function () {
-    if (!session()->has('user_id') || session('user_role') !== 'employe') {
-        return redirect()->to('/login')->with('error', 'Accès refusé. Employés uniquement.');
-    }
-    return view('employe/dashboard');
-});
+$routes->get('/employe', 'EmployeController::dashboard');
+$routes->get('/employe/demandes', 'EmployeController::demandes');
+$routes->get('/employe/nouvelle-demande', 'EmployeController::nouvelleDemande');
+$routes->post('/employe/demandes/store', 'EmployeController::storeDemande');
+$routes->post('/employe/demandes/cancel/(:num)', 'EmployeController::cancelDemande/$1');
+$routes->get('/employe/solde', 'EmployeController::solde');
+$routes->get('/employe/profil', 'EmployeController::profil');
+$routes->post('/employe/profil/update', 'EmployeController::updateProfil');
