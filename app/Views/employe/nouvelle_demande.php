@@ -79,6 +79,7 @@
                     <table class="table table-bordered table-striped mb-0">
                         <thead>
                             <tr>
+                                <th>Année</th>
                                 <th>Type</th>
                                 <th>Attribués</th>
                                 <th>Pris</th>
@@ -89,6 +90,7 @@
                             <?php if (! empty($soldes)): ?>
                                 <?php foreach ($soldes as $solde): ?>
                                     <tr>
+                                        <td><?= (int) ($solde['annee'] ?? '-') ?></td>
                                         <td><?= htmlspecialchars($solde['type_conge'] ?? '-', ENT_QUOTES, 'UTF-8') ?></td>
                                         <td><?= htmlspecialchars((string) ($solde['jours_attribues'] ?? '-'), ENT_QUOTES, 'UTF-8') ?></td>
                                         <td><?= htmlspecialchars((string) ($solde['jours_pris'] ?? '-'), ENT_QUOTES, 'UTF-8') ?></td>
@@ -96,7 +98,7 @@
                                     </tr>
                                 <?php endforeach; ?>
                             <?php else: ?>
-                                <tr><td colspan="4">Aucun solde trouvé.</td></tr>
+                                <tr><td colspan="5">Aucun solde trouvé.</td></tr>
                             <?php endif; ?>
                         </tbody>
                     </table>

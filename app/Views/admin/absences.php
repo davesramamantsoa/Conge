@@ -28,7 +28,7 @@ $pendingCount = (int) ($pendingCount ?? 0);
                     <td><?= esc($absence['prenom_employe'] . ' ' . $absence['nom_employe']) ?></td>
                     <td><?= esc((string) ($absence['type_conge'] ?? '')) ?></td>
                     <td><?= esc((string) ($absence['date_debut'] ?? '')) ?> - <?= esc((string) ($absence['date_fin'] ?? '')) ?></td>
-                    <td><?= esc((string) ($absence['nb_jours'] ?? '')) ?></td>
+                    <td><?= (int) ($absence['nb_jours'] ?? 0) ?></td>
                     <td><span class="badge-soft status-<?= esc((string) ($absence['statut'] ?? '')) ?>"><?= esc((string) ($absence['statut'] ?? '')) ?></span></td>
                 </tr>
             <?php endforeach; ?>

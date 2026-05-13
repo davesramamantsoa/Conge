@@ -2,24 +2,39 @@
 
 namespace App\Controllers;
 
-use App\Models\Conge;
 use App\Models\Solde;
 use App\Models\Employee;
 use CodeIgniter\Controller;
+use Config\Database;
 
 class RH extends Controller
 {
-    protected $congeModel;
     protected $soldeModel;
     protected $employeeModel;
     protected $session;
 
     public function __construct()
     {
-        $this->congeModel = new Conge();
         $this->soldeModel = new Solde();
         $this->employeeModel = new Employee();
         $this->session = session();
+    }
+
+    private function requireRh()
+    {
+        if (!$this->session->has('user_id') || $this->session->get('user_role') !== 'rh') {
+            return redirect()->to('/login')->with('error', 'Accès refusé.');
+        }
+
+        return null;
+    }
+
+    private function congeBuilder()
+    {
+        return Database::connect()->table('conges c')
+            ->select('c.*, e.nom, e.prenom, e.departement_id, t.libelle as type_conge_libelle')
+            ->join('employes e', 'e.id = c.employe_id')
+            ->join('types_conge t', 't.id = c.type_conge_id');
     }
 
     /**
@@ -27,12 +42,12 @@ class RH extends Controller
      */
     public function dashboard()
     {
-        if (!$this->session->has('user_id') || $this->session->get('user_role') !== 'rh') {
-            return redirect()->to('/login')->with('error', 'Accès refusé.');
+        if ($redirect = $this->requireRh()) {
+            return $redirect;
         }
 
         $data = [
-            'demandes' => $this->congeModel->getAllDemandesWithDetails(),
+            'demandes' => $this->congeBuilder()->orderBy('c.created_at', 'DESC')->get()->getResultArray(),
             'departements' => $this->employeeModel->distinct()->select('departement_id')->findAll(),
         ];
 
@@ -44,12 +59,17 @@ class RH extends Controller
      */
     public function filterByDepartement($departement_id)
     {
-        if (!$this->session->has('user_id') || $this->session->get('user_role') !== 'rh') {
-            return redirect()->to('/login')->with('error', 'Accès refusé.');
+        if ($redirect = $this->requireRh()) {
+            return $redirect;
         }
 
         $data = [
-            'demandes' => $this->congeModel->getPendingByDepartement($departement_id),
+            'demandes' => $this->congeBuilder()
+                ->where('c.statut', 'en_attente')
+                ->where('e.departement_id', $departement_id)
+                ->orderBy('c.created_at', 'DESC')
+                ->get()
+                ->getResultArray(),
             'departements' => $this->employeeModel->distinct()->select('departement_id')->findAll(),
             'selected_departement' => $departement_id,
         ];
@@ -62,12 +82,16 @@ class RH extends Controller
      */
     public function filterByStatut($statut)
     {
-        if (!$this->session->has('user_id') || $this->session->get('user_role') !== 'rh') {
-            return redirect()->to('/login')->with('error', 'Accès refusé.');
+        if ($redirect = $this->requireRh()) {
+            return $redirect;
         }
 
         $data = [
-            'demandes' => $this->congeModel->getByStatut($statut),
+            'demandes' => $this->congeBuilder()
+                ->where('c.statut', $statut)
+                ->orderBy('c.created_at', 'DESC')
+                ->get()
+                ->getResultArray(),
             'departements' => $this->employeeModel->distinct()->select('departement_id')->findAll(),
             'selected_statut' => $statut,
         ];
@@ -84,28 +108,46 @@ class RH extends Controller
             return redirect()->back();
         }
 
-        if (!$this->session->has('user_id') || $this->session->get('user_role') !== 'rh') {
-            return redirect()->to('/login')->with('error', 'Accès refusé.');
+        if ($redirect = $this->requireRh()) {
+            return $redirect;
         }
 
-        $demande = $this->congeModel->find($id);
+        $db = Database::connect();
+        $demande = $db->table('conges')->where('id', $id)->get()->getRowArray();
 
         if (!$demande) {
             return redirect()->back()->with('error', 'Demande introuvable.');
         }
 
+        $typeConge = $db->table('types_conge')
+            ->where('id', $demande['type_conge_id'])
+            ->get()
+            ->getRowArray();
+
         // Approuver la demande
-        $this->congeModel->approveDemande($id, $this->session->get('user_id'));
+        $db->table('conges')->where('id', $id)->update([
+            'statut' => 'approuvee',
+            'traite_par' => $this->session->get('user_id'),
+        ]);
 
-        // Mettre à jour automatiquement le solde
-        $this->soldeModel->updateJoursPris(
-            $demande['employe_id'],
-            $demande['type_conge_id'],
-            2025,
-            $demande['nb_jours']
-        );
+        // Mettre à jour automatiquement le solde uniquement pour les congés déductibles
+        if ($typeConge && (int) ($typeConge['deductible'] ?? 1) === 1) {
+            $annee = (int) date('Y', strtotime((string) $demande['date_debut']));
 
-        return redirect()->back()->with('success', 'Demande approuvée et solde mis à jour.');
+            $this->soldeModel->updateJoursPris(
+                $demande['employe_id'],
+                $demande['type_conge_id'],
+                $annee,
+                $demande['nb_jours']
+            );
+        }
+
+        $message = 'Demande approuvée';
+        if ($typeConge && (int) ($typeConge['deductible'] ?? 1) === 1) {
+            $message .= ' et solde mis à jour';
+        }
+
+        return redirect()->back()->with('success', $message . '.');
     }
 
     /**
@@ -117,11 +159,12 @@ class RH extends Controller
             return redirect()->back();
         }
 
-        if (!$this->session->has('user_id') || $this->session->get('user_role') !== 'rh') {
-            return redirect()->to('/login')->with('error', 'Accès refusé.');
+        if ($redirect = $this->requireRh()) {
+            return $redirect;
         }
 
-        $demande = $this->congeModel->find($id);
+        $db = Database::connect();
+        $demande = $db->table('conges')->where('id', $id)->get()->getRowArray();
 
         if (!$demande) {
             return redirect()->back()->with('error', 'Demande introuvable.');
@@ -130,7 +173,11 @@ class RH extends Controller
         $commentaire = $this->request->getPost('commentaire') ?? '';
 
         // Refuser la demande
-        $this->congeModel->refuseDemande($id, $this->session->get('user_id'), $commentaire);
+        $db->table('conges')->where('id', $id)->update([
+            'statut' => 'refusee',
+            'traite_par' => $this->session->get('user_id'),
+            'commentaire_rh' => $commentaire,
+        ]);
 
         return redirect()->back()->with('success', 'Demande refusée.');
     }
@@ -140,8 +187,8 @@ class RH extends Controller
      */
     public function soldes()
     {
-        if (!$this->session->has('user_id') || $this->session->get('user_role') !== 'rh') {
-            return redirect()->to('/login')->with('error', 'Accès refusé.');
+        if ($redirect = $this->requireRh()) {
+            return $redirect;
         }
 
         $data = [
@@ -156,8 +203,8 @@ class RH extends Controller
      */
     public function demandesEmploye($employe_id)
     {
-        if (!$this->session->has('user_id') || $this->session->get('user_role') !== 'rh') {
-            return redirect()->to('/login')->with('error', 'Accès refusé.');
+        if ($redirect = $this->requireRh()) {
+            return $redirect;
         }
 
         $employee = $this->employeeModel->find($employe_id);
@@ -168,7 +215,13 @@ class RH extends Controller
         $data = [
             'employee' => $employee,
             'soldes' => $this->soldeModel->getSoldeEmploye($employe_id, 2025),
-            'demandes' => $this->congeModel->where('employe_id', $employe_id)->orderBy('created_at', 'DESC')->findAll(),
+            'demandes' => Database::connect()->table('conges c')
+                ->select('c.*, t.libelle as type_conge_libelle')
+                ->join('types_conge t', 't.id = c.type_conge_id')
+                ->where('c.employe_id', $employe_id)
+                ->orderBy('c.created_at', 'DESC')
+                ->get()
+                ->getResultArray(),
         ];
 
         return view('rh/demandes-employe', $data);

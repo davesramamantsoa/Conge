@@ -5,6 +5,8 @@ namespace App\Controllers;
 use CodeIgniter\Controller;
 use Config\Database;
 use App\Models\Employee;
+use DateInterval;
+use DatePeriod;
 use DateTime;
 
 class EmployeController extends Controller
@@ -29,6 +31,58 @@ class EmployeController extends Controller
         }
 
         return null;
+    }
+
+    private function calculateWorkingDays(DateTime $dateDebut, DateTime $dateFin): int
+    {
+        $days = 0;
+        $period = new DatePeriod(clone $dateDebut, new DateInterval('P1D'), (clone $dateFin)->modify('+1 day'));
+
+        foreach ($period as $date) {
+            $dayOfWeek = (int) $date->format('N');
+            if ($dayOfWeek < 6) {
+                $days++;
+            }
+        }
+
+        return $days;
+    }
+
+    private function getLeaveType(int $typeCongeId): ?array
+    {
+        return Database::connect()->table('types_conge')
+            ->where('id', $typeCongeId)
+            ->get()
+            ->getRowArray();
+    }
+
+    private function hasActiveOverlap(int $employeeId, string $dateDebut, string $dateFin): bool
+    {
+        $db = Database::connect();
+
+        return $db->table('conges')
+            ->where('employe_id', $employeeId)
+            ->whereIn('statut', ['en_attente', 'approuvee'])
+            ->where('date_debut <=', $dateFin)
+            ->where('date_fin >=', $dateDebut)
+            ->countAllResults() > 0;
+    }
+
+    private function getRemainingBalance(int $employeeId, int $typeCongeId, int $year): ?float
+    {
+        $row = Database::connect()->table('v_soldes')
+            ->select('restant')
+            ->where('employe_id', $employeeId)
+            ->where('type_conge_id', $typeCongeId)
+            ->where('annee', $year)
+            ->get()
+            ->getRowArray();
+
+        if (! $row || ! array_key_exists('restant', $row)) {
+            return null;
+        }
+
+        return (float) $row['restant'];
     }
 
     public function dashboard()
@@ -69,6 +123,7 @@ class EmployeController extends Controller
         }
 
         $db = Database::connect();
+
         $typesConge = $db->table('types_conge')
             ->orderBy('libelle', 'ASC')
             ->get()
@@ -76,6 +131,7 @@ class EmployeController extends Controller
 
         $soldes = $db->table('v_soldes')
             ->where('employe_id', (int) $this->session->get('user_id'))
+            ->orderBy('annee', 'DESC')
             ->orderBy('type_conge', 'ASC')
             ->get()
             ->getResultArray();
@@ -110,18 +166,52 @@ class EmployeController extends Controller
         $dateDebut = DateTime::createFromFormat('Y-m-d', (string) $this->request->getPost('date_debut'));
         $dateFin = DateTime::createFromFormat('Y-m-d', (string) $this->request->getPost('date_fin'));
 
-        if (! $dateDebut || ! $dateFin || $dateDebut > $dateFin) {
+        if (! $dateDebut || ! $dateFin) {
             return redirect()->back()->withInput()->with('error', 'Les dates de congé sont invalides.');
         }
 
-        $jours = (int) $dateDebut->diff($dateFin)->days + 1;
+        if ($dateDebut > $dateFin) {
+            return redirect()->back()->withInput()->with('error', 'La date de début doit être antérieure ou égale à la date de fin.');
+        }
+
+        $jours = $this->calculateWorkingDays($dateDebut, $dateFin);
+
+        if ($jours <= 0) {
+            return redirect()->back()->withInput()->with('error', 'La période sélectionnée ne contient aucun jour ouvrable.');
+        }
+
+        $typeCongeId = (int) $this->request->getPost('type_conge_id');
+        $typeConge = $this->getLeaveType($typeCongeId);
+
+        if (! $typeConge) {
+            return redirect()->back()->withInput()->with('error', 'Le type de congé sélectionné est introuvable.');
+        }
+
+        $dateDebutSql = $dateDebut->format('Y-m-d');
+        $dateFinSql = $dateFin->format('Y-m-d');
+
+        if ($this->hasActiveOverlap((int) $this->session->get('user_id'), $dateDebutSql, $dateFinSql)) {
+            return redirect()->back()->withInput()->with('error', 'Vous avez déjà une demande active qui chevauche cette période.');
+        }
+
+        if ((int) ($typeConge['deductible'] ?? 1) === 1) {
+            $remaining = $this->getRemainingBalance((int) $this->session->get('user_id'), $typeCongeId, (int) $dateDebut->format('Y'));
+
+            if ($remaining === null) {
+                return redirect()->back()->withInput()->with('error', 'Aucun solde disponible pour ce type de congé.');
+            }
+
+            if ($remaining < $jours) {
+                return redirect()->back()->withInput()->with('error', 'Solde insuffisant : il vous reste ' . $remaining . ' jour(s) et vous demandez ' . $jours . ' jour(s) ouvrable(s).');
+            }
+        }
 
         $db = Database::connect();
         $db->table('conges')->insert([
             'employe_id' => (int) $this->session->get('user_id'),
-            'type_conge_id' => (int) $this->request->getPost('type_conge_id'),
-            'date_debut' => $dateDebut->format('Y-m-d'),
-            'date_fin' => $dateFin->format('Y-m-d'),
+            'type_conge_id' => $typeCongeId,
+            'date_debut' => $dateDebutSql,
+            'date_fin' => $dateFinSql,
             'nb_jours' => $jours,
             'motif' => trim((string) $this->request->getPost('motif')),
             'statut' => 'en_attente',
@@ -129,7 +219,7 @@ class EmployeController extends Controller
             'traite_par' => null,
         ]);
 
-        return redirect()->to('/employe/demandes')->with('success', 'Votre demande de congé a été envoyée.');
+        return redirect()->to('/employe/demandes')->with('success', 'Votre demande de congé a été envoyée pour ' . $jours . ' jour(s) ouvrable(s).');
     }
 
     public function cancelDemande($id)
@@ -167,8 +257,10 @@ class EmployeController extends Controller
         }
 
         $db = Database::connect();
+
         $soldes = $db->table('v_soldes')
             ->where('employe_id', (int) $this->session->get('user_id'))
+            ->orderBy('annee', 'DESC')
             ->orderBy('type_conge', 'ASC')
             ->get()
             ->getResultArray();
