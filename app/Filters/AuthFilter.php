@@ -14,7 +14,7 @@ class AuthFilter implements FilterInterface
 
         // Allow request only when user is authenticated.
         if (!$session->has('user_id')) {
-            return redirect()->to('/connexion');
+            return redirect()->to('/login');
         }
 
         return null;
