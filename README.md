@@ -1,296 +1,279 @@
-# BodyMetric — Application de Suggestion de Régimes Alimentaires
+# 📋 TechMada RH - Gestion des Congés
 
-## 📋 Description du Projet
+> Système de gestion des demandes de congés développé avec **CodeIgniter 4** et **SQLite**
 
-**BodyMetric** est une application web CodeIgniter 4 permettant aux utilisateurs de :
-- Se créer un compte en 2 étapes (informations personnelles + données de santé)
-- Calculer automatiquement leur IMC (Indice de Masse Corporelle)
-- Sélectionner un objectif (augmenter, réduire, ou atteindre l'IMC idéal)
-- Recevoir des suggestions personnalisées de régimes alimentaires et d'activités sportives
-- Gérer un portefeuille virtuel avec recharge par code
-- Accéder à une option Gold avec réductions exclusives (15%)
-- Admin : gérer complètement la plateforme via un back-office complet
+##  Vue d'ensemble
 
----
+TechMada RH est une application web pour gérer les demandes de congés des employés d'une entreprise. Elle propose des interfaces spécifiques pour les trois rôles : **Admin**, **RH (Responsable Ressources Humaines)**, et **Employé**.
 
-## 🛠️ Prérequis
+### Fonctionnalités principales
 
-- **PHP** : 8.0 minimum
-- **MySQL/MariaDB** : 5.7 minimum
-- **Composer** : pour les dépendances PHP
+-  **Authentification sécurisée** avec bcrypt pour les mots de passe
+-  **Gestion des demandes de congés** (création, approbation, refus)
+-  **Suivi des soldes de congés** avec mise à jour automatique
+-  **Filtrage des demandes** par statut (en attente, approuvée, refusée)
+-  **Interface RH complète** pour la gestion des demandes
+-  **Système de commentaires** pour les refus de demandes
+-  **Dashboard rôle-spécifique** après connexion
 
 ---
 
-## 📦 Installation
+##  Architecture
 
-### 1. Cloner le projet
+### Base de données (SQLite)
 
-```bash
-git clone https://github.com/yourname/bodymetric.git
-cd bodymetric
+**5 tables principales :**
+
+```
+├── departements          # Départements de l'entreprise
+├── employes             # Employés (id, nom, email, password, rôle)
+├── types_conge          # Types de congés (Congé payé, RTT, Maladie, etc.)
+├── soldes               # Soldes de congés par employé/type/année
+└── conges               # Demandes de congé (statut, dates, commentaires)
 ```
 
-### 2. Installer les dépendances PHP
+### Modèles (MVC)
 
-```bash
-composer install
+```
+app/Models/
+├── Employee.php         # Gestion des employés, authentification
+├── Conge.php           # Gestion des demandes de congé
+├── Solde.php           # Gestion des soldes et calculs
 ```
 
-### 3. Configurer le fichier `.env`
+### Contrôleurs
 
-Copier `.env.example` en `.env` et ajuster les paramètres :
-
-```bash
-cp .env.example .env
+```
+app/Controllers/
+├── Auth.php            # Login/Logout - Authentification
+├── RH.php              # Dashboard RH - Gestion des demandes
+├── EmployeController.php # Dashboard Employé - Demandes personnelles
+└── Admin.php           # Dashboard Admin - Gestion système
 ```
 
-Éditer `.env` :
+### Vues
 
-```env
-app.baseURL = 'http://localhost:8080/'
-database.default.hostname = localhost
-database.default.database = bodymetric
-database.default.username = root
-database.default.password = ''
-database.default.DBDriver = MySQLi
+```
+app/Views/
+├── login/login.php                # Formulaire de connexion
+├── rh/
+│   ├── dashboard.php             # Demandes en attente + filtres
+│   ├── soldes.php                # Tableau des soldes
+│   └── demandes-employe.php      # Détails employé
+├── employe/
+│   ├── dashboard.php
+│   ├── demandes.php
+│   └── nouvelle-demande.php
+└── admin/                         # Interfaces d'administration
 ```
 
-### 4. Créer la base de données
+---
 
-```bash
-mysql -u root -p < database/migration.sql
+##  Authentification et Rôles
+
+### Trois rôles disponibles
+
+| Rôle | Accès | Fonctionnalités |
+|------|-------|-----------------|
+| **Admin** | `/admin` | Gestion complète : employés, départements, types de congés, soldes |
+| **RH** | `/rh` | Validation des demandes, suivi des soldes, commentaires |
+| **Employé** | `/employe` | Création de demandes, suivi du solde personnel |
+
+### Comptes de démonstration
+
+```
+Rôle       | Email                        | Mot de passe
+-----------|------------------------------|------------------
+RH         | sophie.martin@example.com    | hash_pwd_1
+Admin      | pierre.bernard@example.com   | hash_pwd_4
+Employé    | jean.dupont@example.com      | hash_pwd_2
+Employé    | marie.leroy@example.com      | hash_pwd_3
+Employé    | claire.moreau@example.com    | hash_pwd_5
 ```
 
-### 5. Générer la clé d'application
+---
 
-```bash
-php spark key:generate
+##  Fonctionnalités RH Implémentées
+
+### 1️⃣ Voir toutes les demandes en attente
+
+**Route:** `GET /rh`
+
+-  Affiche un tableau complet des demandes de congé non traitées
+-  Colonnes : Employé, Type, Période, Durée, Motif, Statut, Actions
+-  Actualisation des données en temps réel
+
+### 2️⃣ Approuver ou Refuser une demande
+
+**Routes:**
+- `POST /rh/approve/:id` - Approuve et met à jour le solde
+- `POST /rh/refuse/:id` - Refuse avec commentaire optionnel
+
+**Features :**
+-  Boutons d'action pour chaque demande en attente
+-  Modal de refus avec champ de commentaire
+-  Confirmation avant approbation
+
+### 3️⃣ Mise à jour automatique du solde
+
+Lorsqu'une demande est **approuvée** :
+-  Les jours pris sont automatiquement ajoutés aux soldes
+-  Calcul : `jours_pris += nb_jours_congé`
+-  Année de référence : 2025 (configurable)
+
+**Exemple :**
+```
+Claire Moreau : Congé payé 2025
+AVANT : 25 attribués, 3 pris, 22 restants
+APRÈS approbation de 3 jours : 25 attribués, 6 pris, 19 restants
 ```
 
-### 6. Lancer le serveur de développement
+### 4️⃣ Filtrer les demandes
 
-```bash
-php spark serve
-```
+**Routes de filtrage :**
+- `GET /rh/filter-statut/en_attente` - Demandes en attente
+- `GET /rh/filter-statut/approuvee` - Demandes approuvées
+- `GET /rh/filter-statut/refusee` - Demandes refusées
+
+**Filtres disponibles :**
+-  Par **statut** (en attente, approuvée, refusée)
+-  Par **département** (optionnel, extensible)
+-  Tri par date de création décroissant
+
+### Vues supplémentaires RH
+
+**Route:** `GET /rh/soldes`
+-  Tableau complet des soldes de tous les employés
+-  Affichage : Jours attribués, pris, restants, pourcentage d'utilisation
+-  Barre de progression visuelle
+
+**Route:** `GET /rh/employe/:id`
+-  Détails d'un employé spécifique
+-  Ses soldes pour l'année en cours
+-  Historique de ses demandes
+
+---
+
+##  Installation et démarrage
+
+### Prérequis
+- PHP 8.0+
+- Composer
+- SQLite (inclus dans PHP)
+
+### Installation
+
 
 L'application sera accessible à : **http://localhost:8080**
 
----
+### Configuration
 
-## 🔐 Identifiants de Test
-
-### Front-office — Utilisateur classique
-- **Email** : `user@test.com`
-- **Mot de passe** : `Password123`
-
-### Back-office — Administrateur
-- **ID Admin** : `1` (user_id = 1 = administrateur)
-- **Email** : `admin@test.com`
-- **Mot de passe** : `Admin@123`
-
----
-
-## ✨ Fonctionnalités Implémentées
-
-### Front-office
-
-✅ **Authentification**
-- Inscription en 2 étapes avec validation
-- Connexion sécurisée
-- Gestion de session
-- Déconnexion
-
-✅ **Profil Utilisateur**
-- Affichage IMC avec catégorie
-- Édition des données personnelles
-- Recalcul IMC en temps réel
-- Badge Gold
-
-✅ **Objectif**
-- Sélection d'objectif (augmenter/réduire/IMC idéal)
-- Sauvegarde en session et base de données
-- Interface visuelle avec cartes
-
-✅ **Suggestion de Régimes**
-- Algorithme de filtrage par objectif
-- Affichage des régimes avec composition
-- Remise 15% pour utilisateurs Gold
-- Activités sportives associées
-- Export PDF du plan
-
-✅ **Portefeuille**
-- Affichage du solde
-- Recharge par code
-- Historique des transactions
-- Validation AJAX des codes
-
-✅ **Option Gold**
-- Page de présentation des avantages
-- Achat via portefeuille
-- Remise automatique sur les régimes
-
-### Back-office
-
-✅ **Authentification Admin**
-- Login admin sécurisé
-- Vérification des droits (user_id = 1)
-- Session admin séparée
-
-✅ **Tableau de Bord**
-- KPI : utilisateurs, régimes, codes, Gold
-- Graphe Chart.js des inscriptions par mois
-- Graphe camembert des objectifs
-- Responsive design
-
-✅ **CRUD Régimes**
-- Création/Édition/Suppression
-- Validation composition (% = 100%)
-- Association avec activités
-- Pagination
-
-✅ **CRUD Activités**
-- Création/Édition/Suppression
-- Niveaux : Débutant/Intermédiaire/Avancé
-- Pagination
-
-✅ **CRUD Codes Portefeuille**
-- Génération en masse
-- Invalidation manuelle
-- Filtre par statut
-- Pagination
-
-✅ **CRUD Paramètres**
-- Gestion centralisée des paramètres
-- Prix Gold
-- Seuils IMC
-- Remise Gold
-
----
-
-## 🗄️ Base de Données
-
-### Tables principales
-
-- **users** : utilisateurs, IMC, wallet, Gold
-- **regimes** : régimes alimentaires avec composition
-- **activites** : activités sportives
-- **codes** : codes de recharge portefeuille
-- **parametres** : configuration de l'app
-- **regime_activite** : liaison régimes/activités (pivot)
-
-### Données de test
-
-La migration SQL insère automatiquement :
-- 5 utilisateurs de test
-- 5 régimes
-- 5 activités
-- 15 codes portefeuille
-- Paramètres par défaut
-
----
-
-## 🎨 Technologies Utilisées
-
-- **Backend** : CodeIgniter 4
-- **Base de données** : MySQL/MariaDB
-- **Frontend** : HTML5, CSS3, JavaScript Vanilla
-- **Graphes** : Chart.js
-- **PDF** : DomPDF
-- **Authentification** : Session CI4 + password_hash
-
----
-
-## 📚 Routes Principales
-
-### Front-office
-- `GET /` → Accueil (redirection selon état)
-- `GET /connexion` → Page de connexion
-- `POST /connexion` → Traitement connexion
-- `GET /inscription/step1` → Étape 1 inscription
-- `POST /inscription/step1` → Traitement étape 1
-- `GET /inscription/step2` → Étape 2 inscription
-- `POST /inscription/step2` → Traitement inscription
-- `GET /profil` → Profil utilisateur
-- `POST /profil/perso-ajax` → Mise à jour profil
-- `GET /objectif` → Sélection objectif
-- `POST /objectif/store` → Sauvegarde objectif
-- `GET /resultats` → Suggestion de régimes
-- `GET /portefeuille` → Portefeuille
-- `POST /ajax/portefeuille/valider-code` → Validation code
-- `GET /gold` → Page Gold
-- `GET /export-pdf` → Export PDF du plan
-
-### Back-office
-- `GET /bo` → Dashboard
-- `GET /bo/regimes` → Gestion régimes
-- `GET /bo/activites` → Gestion activités
-- `GET /bo/codes` → Gestion codes
-- `GET /bo/parametres` → Gestion paramètres
-
----
-
-## 🐛 Débogage
-
-### Logs
-Les logs d'erreurs sont disponibles dans :
-```
-writable/logs/log-*.log
-```
-
-### Toolbar de débogage
-Activée en développement : accessible en bas de chaque page
-
----
-
-## 📝 Notes de développement
-
-### Calcul IMC
-```
-IMC = poids (kg) / (taille (m))²
-```
-
-### Catégories IMC
-- **Maigreur** : < 18.5
-- **Normal** : 18.5 - 25
-- **Surpoids** : 25 - 30
-- **Obésité** : > 30
-
-### Remise Gold
-Appliquée automatiquement si `is_gold = 1` :
-```
-prix_affiche = prix_base * 0.85
+**Base URL** - Modifier si nécessaire dans `app/Config/App.php` :
+```php
+public string $baseURL = 'http://localhost:8080/';
 ```
 
 ---
 
-## ✅ Checklist de Livraison
+##  Structure des fichiers
 
-- [x] Base de données créée et testée
-- [x] Front-office complet (inscription, objectif, suggestions)
-- [x] Profil et édition utilisateur
-- [x] Portefeuille et recharge par code
-- [x] Option Gold avec remise
-- [x] Back-office avec 4 CRUD + dashboard
-- [x] Tests manuels complets
-- [x] Déploiement en ligne
+```
+.
+├── app/
+│   ├── Config/
+│   │   ├── App.php              # Configuration principale
+│   │   ├── Routes.php           # Définition des routes
+│   │   ├── Filters.php          # Filtres de sécurité
+│   │   └── Database.php         # Connexion à la base
+│   ├── Controllers/
+│   │   ├── Auth.php             # Authentification
+│   │   ├── RH.php               # Gestion RH des demandes
+│   │   ├── EmployeController.php # Demandes employés
+│   │   └── Admin.php            # Administration
+│   ├── Models/
+│   │   ├── Employee.php         # Modèle Employé
+│   │   ├── Conge.php           # Modèle Demande
+│   │   └── Solde.php           # Modèle Solde
+│   └── Views/
+│       ├── login/login.php
+│       ├── rh/
+│       │   ├── dashboard.php
+│       │   ├── soldes.php
+│       │   └── demandes-employe.php
+│       ├── employe/
+│       └── admin/
+├── public/
+│   ├── index.php
+│   ├── assets/
+│   │   ├── bootstrap/
+│   │   ├── css/
+│   │   │   ├── fonts.css        # Polices offline
+│   │   │   └── login.css
+│   │   └── js/
+├── writable/
+│   ├── database.sql             # Base de données SQLite
+│   ├── logs/
+│   └── cache/
+└── README.md
+```
 
 ---
 
-## 📄 Licence
+##  Points techniques importants
 
-Ce projet est sous licence MIT. Voir le fichier `LICENSE` pour plus de détails.
+### Sécurité
+
+- **Hachage des mots de passe** : bcrypt (`PASSWORD_DEFAULT`)
+- **CSRF Token** : Inclus dans tous les formulaires
+- **Session-based auth** : Vérification de la session dans chaque route protégée
+- **Validation d'entrées** : Trim, htmlspecialchars, validation côté serveur
+
+### Modèles : Méthodes principales
+
+#### Employee Model
+
+```php
+$employee = new Employee();
+$employee->getByEmail($email);           // Trouver par email
+$employee->getActiveByEmail($email);     // Actif uniquement
+$employee->getById($id);                 // Par ID
+```
+
+#### Conge Model
+
+```php
+$conge = new Conge();
+$conge->getPendingDemandes();            // Demandes en attente
+$conge->getPendingDemandesWithDetails(); // Avec employé + type
+$conge->getByStatut('approuvee');        // Filtre par statut
+$conge->approveDemande($id, $rhId);      // Approuver
+$conge->refuseDemande($id, $rhId, $comment); // Refuser
+```
+
+#### Solde Model
+
+```php
+$solde = new Solde();
+$solde->getSoldeEmploye($emp_id, 2025);  // Soldes d'un employé
+$solde->updateJoursPris($emp_id, $type_id, 2025, $nb_jours); // MAJ
+$solde->getAllSoldes(2025);               // Tous les soldes
+```
 
 ---
 
-**Dernière mise à jour** : 11 mai 2026
-> - The end of life date for PHP 7.4 was November 28, 2022.
-> - The end of life date for PHP 8.0 was November 26, 2023.
-> - The end of life date for PHP 8.1 was December 31, 2025.
-> - If you are still using below PHP 8.2, you should upgrade immediately.
-> - The end of life date for PHP 8.2 will be December 31, 2026.
+##  Interface utilisateur
 
-Additionally, make sure that the following extensions are enabled in your PHP:
+### Thème
 
-- json (enabled by default - don't turn it off)
-- [mysqlnd](http://php.net/manual/en/mysqlnd.install.php) if you plan to use MySQL
-- [libcurl](http://php.net/manual/en/curl.requirements.php) if you plan to use the HTTP\CURLRequest library
+- **Couleurs primaires** : Vert forêt (#2d5a3d), succès (#1e6b3f)
+- **Polices** : DM Sans (sans-serif), Georgia (serif fallback)
+- **Framework CSS** : Bootstrap 5
+- **Icons** : Bootstrap Icons
+
+### Composants
+
+- Tables avec tri et filtrage
+- Modales pour les actions confirmées
+- Alerts/Toasts pour les messages
+- Sidebar de navigation pour RH
+- Barres de progression pour les soldes
