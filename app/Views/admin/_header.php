@@ -164,6 +164,7 @@ $active = $active ?? 'dashboard';
             <div class="nav-label">Navigation</div>
             <nav class="admin-nav">
                 <a class="<?= $active === 'dashboard' ? 'active' : '' ?>" href="<?= base_url('/admin') ?>"><i class="bi bi-speedometer2"></i> Tableau de bord</a>
+                <a class="<?= $active === 'chart' ? 'active' : '' ?>" href="<?= base_url('/admin/chart') ?>"><i class="bi bi-speedometer2"></i> Chart</a>
                 <a class="<?= $active === 'employes' ? 'active' : '' ?>" href="<?= base_url('/admin/employes') ?>"><i class="bi bi-people"></i> Employés</a>
                 <a class="<?= $active === 'departements' ? 'active' : '' ?>" href="<?= base_url('/admin/departements') ?>"><i class="bi bi-diagram-3"></i> Départements</a>
                 <a class="<?= $active === 'types' ? 'active' : '' ?>" href="<?= base_url('/admin/types-conges') ?>"><i class="bi bi-calendar-heart"></i> Types de congé</a>

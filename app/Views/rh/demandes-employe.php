@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="fr">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -12,18 +13,21 @@
             --success: #1e6b3f;
             --danger: #c0392b;
         }
+
         body {
             font-family: 'DM Sans', sans-serif;
             background: #f8f6f1;
         }
+
         .sidebar {
             background: var(--forest);
             height: 100vh;
             position: sticky;
             top: 0;
         }
+
         .sidebar a {
-            color: rgba(255,255,255,.7);
+            color: rgba(255, 255, 255, .7);
             text-decoration: none;
             display: block;
             padding: 12px 16px;
@@ -31,20 +35,24 @@
             margin: 4px 8px;
             transition: all .2s;
         }
+
         .sidebar a:hover {
-            background: rgba(45,90,61,.3);
+            background: rgba(45, 90, 61, .3);
             color: white;
         }
+
         .container-main {
             padding: 2rem;
         }
+
         .card {
             border: 1px solid #dde8e1;
             border-radius: 12px;
-            box-shadow: 0 2px 4px rgba(0,0,0,.05);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, .05);
         }
     </style>
 </head>
+
 <body>
     <div class="row g-0 min-vh-100">
         <!-- Sidebar -->
@@ -60,11 +68,9 @@
                     <i class="bi bi-graph-up"></i> Soldes des employés
                 </a>
             </nav>
-            <a href="<?= base_url('/logout') ?>" class="btn btn-outline-light w-100" style="margin-top: auto; margin-bottom: 1rem;">Déconnexion</a>
-        </div>
-
-        <!-- Main Content -->
-        <div class="col container-main">
+            <?php $currentPage = 'demandes';
+            $title = 'Demandes'; ?>
+            <?php include 'header.php'; ?>
             <a href="<?= base_url('/rh') ?>" class="btn btn-sm btn-outline-secondary mb-3">
                 <i class="bi bi-arrow-left"></i> Retour
             </a>
@@ -134,7 +140,7 @@
                                     <tr>
                                         <td>
                                             <small>
-                                                <?= date('d/m/Y', strtotime($demande['date_debut'])) ?> au 
+                                                <?= date('d/m/Y', strtotime($demande['date_debut'])) ?> au
                                                 <?= date('d/m/Y', strtotime($demande['date_fin'])) ?>
                                             </small>
                                         </td>
@@ -142,12 +148,12 @@
                                         <td><?= htmlspecialchars($demande['motif'] ?? '-') ?></td>
                                         <td>
                                             <?php
-                                                $badge_class = match($demande['statut']) {
-                                                    'en_attente' => 'warning',
-                                                    'approuvee' => 'success',
-                                                    'refusee' => 'danger',
-                                                    default => 'secondary'
-                                                };
+                                            $badge_class = match ($demande['statut']) {
+                                                'en_attente' => 'warning',
+                                                'approuvee' => 'success',
+                                                'refusee' => 'danger',
+                                                default => 'secondary'
+                                            };
                                             ?>
                                             <span class="badge bg-<?= $badge_class ?>">
                                                 <?= ucfirst($demande['statut']) ?>
@@ -167,5 +173,4 @@
     </div>
 
     <script src="<?= base_url('assets/bootstrap/js/bootstrap.bundle.min.js') ?>"></script>
-</body>
-</html>
+    <?php include 'footer.php'; ?>

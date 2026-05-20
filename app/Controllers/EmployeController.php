@@ -5,6 +5,7 @@ namespace App\Controllers;
 use CodeIgniter\Controller;
 use Config\Database;
 use App\Models\Employee;
+use App\Models\Conges;
 use DateInterval;
 use DatePeriod;
 use DateTime;
@@ -12,11 +13,13 @@ use DateTime;
 class EmployeController extends Controller
 {
     private Employee $employeeModel;
+    private Conges $conges;
     protected $session;
 
     public function __construct()
     {
         $this->employeeModel = new Employee();
+        $this->conges = new Conges();
         $this->session = session();
     }
 
@@ -321,5 +324,22 @@ class EmployeController extends Controller
         ]);
 
         return redirect()->to('/employe/profil')->with('success', 'Profil mis à jour.');
+    }
+
+    public function calendrier()
+    {
+
+        if ($redirect = $this->requireEmploye()) {
+            return $redirect;
+        }
+        $userId = (int) $this->session->get('user_id');
+
+        if ($userId <= 0) {
+            return redirect()->to('/login');
+        }
+
+        $allConge = $this->conges->findwithdetailsByEmploye($userId);
+
+        return view('employe/calendrier', ['allConge' => $allConge]);
     }
 }

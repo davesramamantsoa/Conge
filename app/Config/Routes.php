@@ -37,6 +37,7 @@ $routes->group('admin', ['filter' => 'admin'], static function ($routes) {
     $routes->post('soldes/initialize', 'Admin::initializeSoldes');
 
     $routes->get('historique', 'Admin::historique');
+    $routes->get('chart','Admin::chart');
 });
 
 // Routes protégées - Dashboard RH
@@ -57,3 +58,4 @@ $routes->post('/employe/demandes/cancel/(:num)', 'EmployeController::cancelDeman
 $routes->get('/employe/solde', 'EmployeController::solde');
 $routes->get('/employe/profil', 'EmployeController::profil');
 $routes->post('/employe/profil/update', 'EmployeController::updateProfil');
+$routes->get('/employe/calendrier','EmployeController::calendrier');

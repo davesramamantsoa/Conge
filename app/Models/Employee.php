@@ -63,4 +63,5 @@ class Employee extends Model
     {
         return $this->find($id);
     }
+
 }

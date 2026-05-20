@@ -5,6 +5,7 @@ namespace App\Controllers;
 use App\Models\Conge;
 use App\Models\Employee;
 use App\Models\Solde;
+use App\Models\Conges;
 use CodeIgniter\Controller;
 use Config\Database;
 
@@ -12,6 +13,8 @@ class Admin extends Controller
 {
     protected Employee $employeeModel;
     protected Conge $congeModel;
+
+    protected Conges $conges;
     protected Solde $soldeModel;
     protected $db;
     protected $session;
@@ -21,6 +24,7 @@ class Admin extends Controller
         $this->employeeModel = new Employee();
         $this->congeModel = new Conge();
         $this->soldeModel = new Solde();
+        $this->conges = new Conges();
         $this->db = Database::connect();
         $this->session = session();
     }
@@ -442,5 +446,19 @@ class Admin extends Controller
         ];
 
         return view('admin/historique', $data);
+    }
+
+    public function chart(){
+        if ($redirect = $this->guard()) {
+            return $redirect;
+        }
+        $allMonthConge = $this->conges->countCongeByMonth();
+        $allweekdayConge = $this->conges->countCongeByWeekday();
+
+        $data = [
+            'allMonthData' => $allMonthConge,
+            'allWeekData'=> $allweekdayConge,
+        ];
+        return view('admin/chart',$data);
     }
 }

@@ -27,6 +27,49 @@ class Conges extends Model
         return $builder->get()->getResultArray();
     }
 
+    public function countCongeByMonth()
+    {
+        $db = \Config\Database::connect();
+        $builder = $db->table($this->table);
+
+        $builder->select("
+        strftime('%Y-%m', date_debut) as mois,
+        COUNT(*) as total
+    ");
+
+        $builder->groupBy("mois");
+        $builder->orderBy("mois", "ASC");
+
+        return $builder->get()->getResultArray();
+    }
+    public function countCongeByWeekday()
+    {
+        $db = \Config\Database::connect();
+        $builder = $db->table($this->table);
+
+        $builder->select("
+        strftime('%w', date_debut) as jour_num,
+        COUNT(*) as total
+    ");
+
+        $builder->groupBy("jour_num");
+        $builder->orderBy("jour_num", "ASC");
+
+        return $builder->get()->getResultArray();
+    }
+    public function findwithdetailsByEmploye(int $idEmployee)
+    {
+        $db = \Config\Database::connect();
+        $builder = $db->table($this->table);
+
+        $idEmployee = (int) $idEmployee;
+        $builder->select('conges.*, employes.nom as nom, employes.prenom as prenom, types_conge.libelle as type_conge');
+        $builder->join('employes', 'employes.id = conges.employe_id');
+        $builder->join('types_conge', 'types_conge.id = conges.type_conge_id');
+        $builder->where('employes.id', $idEmployee);
+
+        return $builder->get()->getResultArray();
+    }
     #[Override]
     public function find($id = null)
     {
