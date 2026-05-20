@@ -67,7 +67,7 @@ class Admin extends Controller
         $range = $this->monthRange();
 
         return $this->db->table('conges c')
-            ->select('c.*, e.nom as nom_employe, e.prenom as prenom_employe, t.libelle as type_conge')
+            ->select('c.*, e.nom as nom, e.prenom as prenom, t.libelle as type_conge')
             ->join('employes e', 'e.id = c.employe_id')
             ->join('types_conge t', 't.id = c.type_conge_id')
             ->where('c.date_debut <=', $range['end'])
